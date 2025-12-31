@@ -1,0 +1,775 @@
+{% extends "base.html" %}
+
+{% block title %}Analysis History - PlantCare Pro{% endblock %}
+
+{% block extra_css %}
+<style>
+    @keyframes slideIn {
+        from { opacity: 0; transform: translateX(-20px); }
+        to { opacity: 1; transform: translateX(0); }
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    .page-header {
+        background: white;
+        padding: 40px;
+        border-radius: 20px;
+        margin-bottom: 30px;
+        box-shadow: var(--shadow);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 20px;
+        animation: slideIn 0.6s ease;
+    }
+
+    .page-header-content h2 {
+        font-family: 'Poppins', sans-serif;
+        font-size: 36px;
+        font-weight: 700;
+        color: var(--dark);
+        margin-bottom: 8px;
+    }
+
+    .page-header-content p {
+        color: var(--text-secondary);
+        font-size: 15px;
+    }
+
+    .btn-danger {
+        background: linear-gradient(135deg, var(--error) 0%, #dc2626 100%);
+        color: white;
+        padding: 12px 24px;
+        border-radius: 12px;
+        border: none;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-danger:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .filter-tabs {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        background: white;
+        padding: 25px;
+        border-radius: 20px;
+        margin-bottom: 30px;
+        box-shadow: var(--shadow);
+        animation: slideIn 0.7s ease;
+    }
+
+    .filter-tab {
+        padding: 12px 24px;
+        border: 2px solid var(--border);
+        background: white;
+        color: var(--text-primary);
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-weight: 600;
+        font-size: 15px;
+    }
+
+    .filter-tab:hover {
+        border-color: var(--primary);
+        color: var(--primary);
+        transform: translateY(-2px);
+    }
+
+    .filter-tab.active {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        color: white;
+        border-color: var(--primary);
+    }
+
+    .stats-bar {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    .stat-card {
+        background: white;
+        padding: 25px;
+        border-radius: 16px;
+        box-shadow: var(--shadow);
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .stat-card h3 {
+        font-size: 36px;
+        font-weight: 700;
+        color: var(--primary);
+        margin-bottom: 8px;
+    }
+
+    .stat-card p {
+        color: var(--text-secondary);
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+    .history-item {
+        background: white;
+        padding: 25px;
+        border-radius: 20px;
+        box-shadow: var(--shadow);
+        margin-bottom: 20px;
+        transition: all 0.3s ease;
+        border-left: 5px solid var(--primary);
+        animation: slideIn 0.5s ease;
+        display: grid;
+        grid-template-columns: 150px 1fr;
+        gap: 25px;
+    }
+
+    .history-item:hover {
+        box-shadow: var(--shadow-xl);
+        transform: translateX(5px);
+    }
+
+    .history-image-container {
+        position: relative;
+        width: 150px;
+        height: 150px;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: var(--shadow);
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .history-image-container:hover {
+        transform: scale(1.05);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .history-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .image-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        color: white;
+        font-size: 24px;
+    }
+
+    .history-image-container:hover .image-overlay {
+        opacity: 1;
+    }
+
+    .history-content-wrapper {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .history-header-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        margin-bottom: 15px;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .history-meta {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--text-secondary);
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+    .type-badge {
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .type-diagnosis {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(16, 185, 129, 0.05) 100%);
+        color: var(--primary-dark);
+        border: 2px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .type-identification {
+        background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(139, 92, 246, 0.05) 100%);
+        color: var(--secondary-dark);
+        border: 2px solid rgba(139, 92, 246, 0.3);
+    }
+
+    .history-actions {
+        display: flex;
+        gap: 10px;
+    }
+
+    .icon-btn {
+        background: var(--bg-secondary);
+        border: 2px solid var(--border);
+        width: 42px;
+        height: 42px;
+        border-radius: 10px;
+        font-size: 20px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .icon-btn:hover {
+        background: var(--primary);
+        border-color: var(--primary);
+        color: white;
+        transform: scale(1.1);
+    }
+
+    .delete-btn:hover {
+        background: var(--error);
+        border-color: var(--error);
+    }
+
+    .history-preview {
+        background: var(--bg-secondary);
+        padding: 15px;
+        border-radius: 10px;
+        color: var(--text-secondary);
+        font-size: 14px;
+        line-height: 1.6;
+        max-height: 80px;
+        overflow: hidden;
+        position: relative;
+        margin-bottom: 10px;
+    }
+
+    .history-preview::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 40px;
+        background: linear-gradient(transparent, var(--bg-secondary));
+    }
+
+    .history-content {
+        background: var(--bg-secondary);
+        padding: 20px;
+        border-radius: 12px;
+        border-left: 4px solid var(--primary);
+        max-height: 400px;
+        overflow-y: auto;
+        line-height: 1.8;
+        color: var(--text-primary);
+        display: none;
+        margin-top: 15px;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .history-content.show {
+        display: block;
+        animation: fadeIn 0.3s ease;
+    }
+
+    .expand-btn {
+        background: none;
+        border: none;
+        color: var(--primary);
+        cursor: pointer;
+        font-weight: 600;
+        padding: 10px 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+        font-size: 15px;
+    }
+
+    .expand-btn:hover {
+        color: var(--primary-dark);
+        transform: translateX(5px);
+    }
+
+    .empty-history {
+        text-align: center;
+        padding: 80px 20px;
+        background: white;
+        border-radius: 20px;
+        box-shadow: var(--shadow);
+    }
+
+    .empty-history-icon {
+        font-size: 100px;
+        margin-bottom: 20px;
+        opacity: 0.3;
+    }
+
+    .empty-history h3 {
+        font-size: 24px;
+        font-weight: 600;
+        color: var(--dark);
+        margin-bottom: 12px;
+    }
+
+    .empty-history p {
+        color: var(--text-secondary);
+        margin-bottom: 30px;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        color: white;
+        padding: 14px 28px;
+        border-radius: 12px;
+        text-decoration: none;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    /* Modal Styles */
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 2000;
+        align-items: center;
+        justify-content: center;
+        animation: fadeIn 0.3s ease;
+    }
+
+    .modal.show {
+        display: flex;
+    }
+
+    .modal-content {
+        background: white;
+        padding: 40px;
+        border-radius: 20px;
+        max-width: 500px;
+        width: 90%;
+        box-shadow: var(--shadow-xl);
+        animation: slideIn 0.3s ease;
+    }
+
+    .modal-content h3 {
+        margin-bottom: 20px;
+        font-size: 24px;
+        font-weight: 700;
+    }
+
+    .modal-content p {
+        color: var(--text-secondary);
+        line-height: 1.6;
+        margin-bottom: 30px;
+    }
+
+    .modal-buttons {
+        display: flex;
+        gap: 15px;
+        justify-content: flex-end;
+    }
+
+    .modal-buttons button {
+        padding: 12px 24px;
+        border-radius: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: none;
+    }
+
+    .btn-secondary {
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+        border: 2px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+        background: var(--bg-tertiary);
+    }
+
+    /* Image Modal */
+    .image-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.9);
+        z-index: 3000;
+        align-items: center;
+        justify-content: center;
+        animation: fadeIn 0.3s ease;
+    }
+
+    .image-modal.show {
+        display: flex;
+    }
+
+    .modal-image {
+        max-width: 90%;
+        max-height: 90%;
+        border-radius: 12px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        animation: fadeIn 0.4s ease;
+    }
+
+    .close-modal {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: white;
+        color: var(--dark);
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: none;
+    }
+
+    .close-modal:hover {
+        background: var(--error);
+        color: white;
+        transform: rotate(90deg);
+    }
+
+    @media (max-width: 768px) {
+        .history-item {
+            grid-template-columns: 1fr;
+            padding: 20px;
+        }
+
+        .history-image-container {
+            width: 100%;
+            height: 200px;
+        }
+
+        .history-actions {
+            width: 100%;
+            justify-content: flex-end;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-header-content">
+        <h2>📜 Analysis History</h2>
+        <p>View and manage all your previous plant analyses</p>
+    </div>
+    <button class="btn-danger" id="clearAllBtn">
+        <span>🗑️</span> Clear All History
+    </button>
+</div>
+
+<div class="filter-tabs">
+    <button class="filter-tab active" data-filter="all">All Analyses</button>
+    <button class="filter-tab" data-filter="diagnosis">🔬 Diagnosis</button>
+    <button class="filter-tab" data-filter="identification">🔍 Identification</button>
+</div>
+
+<div class="stats-bar" id="statsBar">
+    <div class="stat-card">
+        <h3 id="totalCount">0</h3>
+        <p>Total Analyses</p>
+    </div>
+    <div class="stat-card">
+        <h3 id="diagnosisCount">0</h3>
+        <p>Diagnoses</p>
+    </div>
+    <div class="stat-card">
+        <h3 id="identificationCount">0</h3>
+        <p>Identifications</p>
+    </div>
+</div>
+
+<div id="historyContainer">
+    <div class="empty-history">
+        <div class="empty-history-icon">📋</div>
+        <h3>No History Yet</h3>
+        <p>Start analyzing plants to build your history</p>
+        <a href="/diagnosis" class="btn-primary">
+            <span>🔬</span> Start Diagnosis
+        </a>
+    </div>
+</div>
+
+<!-- Image Modal -->
+<div class="image-modal" id="imageModal">
+    <button class="close-modal" id="closeModal">✕</button>
+    <img id="modalImage" class="modal-image" alt="Full size">
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal" id="deleteModal">
+    <div class="modal-content">
+        <h3 style="color: var(--error);">🗑️ Confirm Delete</h3>
+        <p>Are you sure you want to delete this item from history? This action cannot be undone.</p>
+        <div class="modal-buttons">
+            <button class="btn-danger" id="confirmDelete">Delete</button>
+            <button class="btn-secondary" id="cancelDelete">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- Clear All Confirmation Modal -->
+<div class="modal" id="clearAllModal">
+    <div class="modal-content">
+        <h3 style="color: var(--error);">⚠️ Clear All History?</h3>
+        <p>This will permanently delete all your analysis history. This action cannot be undone.</p>
+        <div class="modal-buttons">
+            <button class="btn-danger" id="confirmClearAll">Clear All</button>
+            <button class="btn-secondary" id="cancelClearAll">Cancel</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let historyData = [];
+    let currentFilter = 'all';
+    let itemToDelete = null;
+
+    async function loadHistory() {
+        try {
+            const response = await fetch('/api/history');
+            historyData = await response.json();
+            historyData.reverse();
+            updateStats();
+            renderHistory();
+        } catch (error) {
+            console.error('Error loading history:', error);
+        }
+    }
+
+    function updateStats() {
+        document.getElementById('totalCount').textContent = historyData.length;
+        document.getElementById('diagnosisCount').textContent = 
+            historyData.filter(item => item.type === 'diagnosis').length;
+        document.getElementById('identificationCount').textContent = 
+            historyData.filter(item => item.type === 'identification').length;
+    }
+
+    function renderHistory() {
+        const container = document.getElementById('historyContainer');
+        const filteredData = currentFilter === 'all' 
+            ? historyData 
+            : historyData.filter(item => item.type === currentFilter);
+
+        if (filteredData.length === 0) {
+            container.innerHTML = `
+                <div class="empty-history">
+                    <div class="empty-history-icon">📋</div>
+                    <h3>No ${currentFilter === 'all' ? '' : currentFilter} history</h3>
+                    <p>Start analyzing plants to build your history</p>
+                    <a href="/diagnosis" class="btn-primary">
+                        <span>🔬</span> Start Diagnosis
+                    </a>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = filteredData.map((item, index) => {
+            const date = new Date(item.timestamp);
+            const typeIcon = item.type === 'diagnosis' ? '🔬' : '🔍';
+            const typeClass = `type-${item.type}`;
+            const imagePath = item.image_path || '/static/placeholder.jpg';
+            const preview = item.analysis.substring(0, 150) + '...';
+            
+            return `
+                <div class="history-item" data-id="${item.id}" style="animation-delay: ${index * 0.1}s">
+                    <div class="history-image-container" onclick="showImageModal('${imagePath}')">
+                        <img src="${imagePath}" alt="Plant Image" class="history-image" onerror="this.src='/static/placeholder.jpg'">
+                        <div class="image-overlay">🔍</div>
+                    </div>
+                    
+                    <div class="history-content-wrapper">
+                        <div class="history-header-info">
+                            <div class="history-meta">
+                                <span class="type-badge ${typeClass}">${typeIcon} ${item.type}</span>
+                                <span class="meta-item">📅 ${date.toLocaleDateString()}</span>
+                                <span class="meta-item">🕐 ${date.toLocaleTimeString()}</span>
+                            </div>
+                            <div class="history-actions">
+                                <button class="icon-btn" onclick="toggleExpand(${item.id})" title="View Details">👁️</button>
+                                <button class="icon-btn delete-btn" data-id="${item.id}" title="Delete">🗑️</button>
+                            </div>
+                        </div>
+                        
+                        <div class="history-preview">${preview}</div>
+                        
+                        <div class="history-content" id="content-${item.id}">
+                            ${item.formatted_analysis || item.analysis}
+                        </div>
+                        
+                        <button class="expand-btn" onclick="toggleExpand(${item.id})">
+                            <span id="expand-text-${item.id}">Show Full Analysis ▼</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        // Add delete button event listeners
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                itemToDelete = parseInt(btn.dataset.id);
+                document.getElementById('deleteModal').classList.add('show');
+            });
+        });
+    }
+
+    function toggleExpand(id) {
+        const content = document.getElementById(`content-${id}`);
+        const text = document.getElementById(`expand-text-${id}`);
+        
+        if (content.classList.contains('show')) {
+            content.classList.remove('show');
+            text.textContent = 'Show Full Analysis ▼';
+        } else {
+            content.classList.add('show');
+            text.textContent = 'Hide Analysis ▲';
+        }
+    }
+
+    function showImageModal(imagePath) {
+        const modal = document.getElementById('imageModal');
+        const modalImage = document.getElementById('modalImage');
+        modalImage.src = imagePath;
+        modal.classList.add('show');
+    }
+
+    // Close image modal
+    document.getElementById('closeModal').addEventListener('click', () => {
+        document.getElementById('imageModal').classList.remove('show');
+    });
+
+    document.getElementById('imageModal').addEventListener('click', (e) => {
+        if (e.target.id === 'imageModal') {
+            document.getElementById('imageModal').classList.remove('show');
+        }
+    });
+
+    // Filter tabs
+    document.querySelectorAll('.filter-tab').forEach(tab => {
+        tab.addEventListener('click', (e) => {
+            document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+            e.target.classList.add('active');
+            currentFilter = e.target.dataset.filter;
+            renderHistory();
+        });
+    });
+
+    // Delete single item
+    document.getElementById('confirmDelete').addEventListener('click', async () => {
+        if (itemToDelete) {
+            try {
+                await fetch(`/api/history/${itemToDelete}`, { method: 'DELETE' });
+                document.getElementById('deleteModal').classList.remove('show');
+                loadHistory();
+            } catch (error) {
+                console.error('Error deleting item:', error);
+            }
+        }
+    });
+
+    document.getElementById('cancelDelete').addEventListener('click', () => {
+        document.getElementById('deleteModal').classList.remove('show');
+        itemToDelete = null;
+    });
+
+    // Clear all history
+    document.getElementById('clearAllBtn').addEventListener('click', () => {
+        if (historyData.length > 0) {
+            document.getElementById('clearAllModal').classList.add('show');
+        }
+    });
+
+    document.getElementById('confirmClearAll').addEventListener('click', async () => {
+        try {
+            await fetch('/api/history/clear', { method: 'DELETE' });
+            document.getElementById('clearAllModal').classList.remove('show');
+            loadHistory();
+        } catch (error) {
+            console.error('Error clearing history:', error);
+        }
+    });
+
+    document.getElementById('cancelClearAll').addEventListener('click', () => {
+        document.getElementById('clearAllModal').classList.remove('show');
+    });
+
+    // Make functions global
+    window.toggleExpand = toggleExpand;
+    window.showImageModal = showImageModal;
+    
+    // Load history on page load
+    loadHistory();
+</script>
+{% endblock %}
