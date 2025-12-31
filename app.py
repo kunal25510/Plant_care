@@ -11,7 +11,7 @@ app = Flask(__name__)
 app.secret_key = 'your-secret-key-change-this-in-production'
 
 # 🔑 PUT YOUR API KEY HERE
-GEMINI_API_KEY = "AIzaSyBOR0zGns-VcQ9vwkv6MVp3YXva68a1k24"
+GEMINI_API_KEY = "AIzaSyCy2ITLrSl-pAZqbaBQLJ2ME-BYX4nrWec"
 
 genai.configure(api_key=GEMINI_API_KEY)
 
@@ -452,3 +452,4 @@ if __name__ == '__main__':
     print("="*60 + "\n")
 
     app.run(debug=True, port=5000)
+
