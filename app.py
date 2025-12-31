@@ -11,7 +11,7 @@ app = Flask(__name__)
 app.secret_key = 'your-secret-key-change-this-in-production'
 
 # 🔑 PUT YOUR API KEY HERE
-GEMINI_API_KEY = "AIzaSyDjZ8cuqlt20Pdz-bTvsIpcEhEREK5HMjk"
+GEMINI_API_KEY = "AIzaSyBOR0zGns-VcQ9vwkv6MVp3YXva68a1k24"
 
 genai.configure(api_key=GEMINI_API_KEY)
 
@@ -450,4 +450,5 @@ if __name__ == '__main__':
     print(f"✓ Upload Folder: {UPLOAD_FOLDER}")
     print(f"✓ Press Ctrl+C to stop")
     print("="*60 + "\n")
+
     app.run(debug=True, port=5000)
