@@ -29,7 +29,7 @@ def format_response_enhanced(text):
         return text
     
     # Clean up markdown formatting
- AIzaSyCjGH__YdkJk-hOSEIOBuSzCbQACNlRUXcAIzaSyCjGH__YdkJk-hOSEIOBuSzCbQACNlRUXcAIzaSyCjGH__YdkJk-hOSEIOBuSzCbQACNlRUXc   text = text.replace('**', '')
+    text = text.replace('**', '')
     lines = text.split('\n')
     formatted_lines = []
     in_list = False
