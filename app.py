@@ -11,7 +11,7 @@ app = Flask(__name__)
 app.secret_key = 'your-secret-key-change-this-in-production'
 
 # 🔑 PUT YOUR API KEY HERE
-GEMINI_API_KEY = "AIzaSyCy2ITLrSl-pAZqbaBQLJ2ME-BYX4nrWec"
+GEMINI_API_KEY = "AIzaSyCjGH__YdkJk-hOSEIOBuSzCbQACNlRUXc"
 
 genai.configure(api_key=GEMINI_API_KEY)
 
@@ -29,7 +29,7 @@ def format_response_enhanced(text):
         return text
     
     # Clean up markdown formatting
-    text = text.replace('**', '')
+ AIzaSyCjGH__YdkJk-hOSEIOBuSzCbQACNlRUXcAIzaSyCjGH__YdkJk-hOSEIOBuSzCbQACNlRUXcAIzaSyCjGH__YdkJk-hOSEIOBuSzCbQACNlRUXc   text = text.replace('**', '')
     lines = text.split('\n')
     formatted_lines = []
     in_list = False
