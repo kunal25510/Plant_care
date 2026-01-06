@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, jsonify, session
+from dotenv import load_dotenv
 import google.generativeai as genai
 from PIL import Image
 import io
@@ -7,13 +8,128 @@ from datetime import datetime
 import os
 import base64
 
+def get_api_key():
+    """
+    Load API key directly from .env file to avoid dotenv caching issues
+    Returns the cleaned API key or raises an error
+    """
+    print("\n" + "="*60)
+    print("LOADING API KEY")
+    print("="*60)
+    
+    # Try 1: Read directly from .env file (MOST RELIABLE)
+    try:
+        with open('.env', 'r') as f:
+            content = f.read()
+            print(f"✓ Reading .env file directly")
+            
+            # Find GEMINI_API_KEY line
+            for line in content.splitlines():
+                line = line.strip()
+                if line.startswith('GEMINI_API_KEY='):
+                    # Extract value after =
+                    raw_key = line.split('=', 1)[1].strip()
+                    
+                    # Clean the key (remove quotes, extra spaces)
+                    cleaned_key = raw_key.replace('"', '').replace("'", '').strip()
+                    
+                    print(f"  Raw key from .env: {repr(raw_key)}")
+                    print(f"  Cleaned key: {repr(cleaned_key)}")
+                    print(f"  Key length: {len(cleaned_key)}")
+                    
+                    if len(cleaned_key) < 30:
+                        print(f"  ⚠️ Warning: Key seems too short!")
+                    
+                    return cleaned_key
+    except FileNotFoundError:
+        print("✗ .env file not found")
+    except Exception as e:
+        print(f"✗ Error reading .env: {e}")
+    
+    # Try 2: Use load_dotenv as fallback
+    print("\nTrying load_dotenv()...")
+    try:
+        # Clear any existing GEMINI/API environment variables
+        for key in list(os.environ.keys()):
+            if 'GEMINI' in key or 'API_KEY' in key:
+                del os.environ[key]
+        
+        # Force reload
+        load_dotenv(override=True)
+        
+        env_key = os.environ.get('GEMINI_API_KEY')
+        if env_key:
+            print(f"✓ Key from load_dotenv: {repr(env_key[:20])}...")
+            print(f"  Length: {len(env_key)}")
+            return env_key
+    except Exception as e:
+        print(f"✗ Error with load_dotenv: {e}")
+    
+    # Try 3: Check for other possible variable names
+    print("\nChecking alternative variable names...")
+    possible_names = [
+        'GEMINI_API_KEY', 'GOOGLE_API_KEY', 'API_KEY', 
+        'GEMINI_KEY', 'GOOGLE_AI_KEY', 'AI_API_KEY'
+    ]
+    
+    for name in possible_names:
+        value = os.environ.get(name)
+        if value:
+            print(f"✓ Found in {name}: {repr(value[:20])}...")
+            return value
+    
+    print("\n❌ NO API KEY FOUND!")
+    print("="*60)
+    raise ValueError("""
+⚠️ GEMINI_API_KEY not found! 
+Please ensure:
+1. You have a .env file in the same directory as app.py
+2. It contains: GEMINI_API_KEY=your_actual_key_here
+3. No quotes around the key
+4. No extra spaces before/after =
+
+Example .env file content:
+GEMINI_API_KEY=AIzaSyABC123yourkeyhere
+SECRET_KEY=your_flask_secret
+""")
+
+# Get the API key
+GEMINI_API_KEY = get_api_key()
+
+# Validate the key looks right
+if not GEMINI_API_KEY.startswith('AIza'):
+    print(f"⚠️ Warning: Key doesn't start with 'AIza' (starts with: {repr(GEMINI_API_KEY[:4])})")
+
+print(f"\n✅ Final API key to use: {repr(GEMINI_API_KEY[:15])}...")
+print(f"   Total length: {len(GEMINI_API_KEY)} characters")
+print("="*60 + "\n")
+
+# Configure Gemini with error handling
+try:
+    genai.configure(api_key=GEMINI_API_KEY)
+    
+    # Test the configuration
+    print("Testing Gemini API connection...")
+    model = genai.GenerativeModel("gemini-2.5-flash")
+    test_response = model.generate_content("Say 'Hello World' to test connection")
+    print(f"✅ Gemini configured successfully: {test_response.text[:50]}...")
+except Exception as e:
+    print(f"❌ Gemini configuration failed: {e}")
+    print("\nCommon issues:")
+    print("1. API key is invalid or expired")
+    print("2. API key doesn't have proper permissions")
+    print("3. Internet connection issue")
+    print("4. Google AI Studio API quota exceeded")
+    raise
+
+# ================================================
+# REST OF THE APP.PY CODE (UNCHANGED)
+# ================================================
+
 app = Flask(__name__)
-app.secret_key = 'your-secret-key-change-this-in-production'
 
-# 🔑 PUT YOUR API KEY HERE
-GEMINI_API_KEY = "AIzaSyCjGH__YdkJk-hOSEIOBuSzCbQACNlRUXc"
-
-genai.configure(api_key=GEMINI_API_KEY)
+# SECURITY: Use environment variable for secret key
+app.secret_key = os.environ.get('SECRET_KEY', os.urandom(24))
 
 # File to store history (in production, use a database)
 HISTORY_FILE = 'analysis_history.json'
@@ -443,13 +559,14 @@ def clear_history():
 
 if __name__ == '__main__':
     print("\n" + "="*60)
-    print("🌿 PlantCare Pro - Enhanced Version Starting...")
+    print("🌿 PlantCare Pro - Starting...")
     print("="*60)
-    print(f"✓ API Key: {GEMINI_API_KEY[:15]}...{GEMINI_API_KEY[-4:]}")
     print(f"✓ Server: http://localhost:5000")
     print(f"✓ Upload Folder: {UPLOAD_FOLDER}")
+    print(f"✓ Environment: {'Production' if not app.debug else 'Development'}")
     print(f"✓ Press Ctrl+C to stop")
     print("="*60 + "\n")
-
-    app.run(debug=True, port=5000)
-
+    
+    port = int(os.environ.get("PORT", 5000))
+    debug_mode = os.environ.get("FLASK_DEBUG", "False").lower() == "true"
+    app.run(host="0.0.0.0", port=port, debug=debug_mode)
