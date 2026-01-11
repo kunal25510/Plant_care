@@ -1,0 +1,868 @@
+{% extends "base.html" %}
+
+{% block title %}Disease Diagnosis - PlantCare Pro{% endblock %}
+
+{% block extra_css %}
+<style>
+    @keyframes slideDown {
+        from { opacity: 0; transform: translateY(-20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: scale(0.95); }
+        to { opacity: 1; transform: scale(1); }
+    }
+
+    @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+    }
+
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+
+    @keyframes shimmer {
+        0% { background-position: -1000px 0; }
+        100% { background-position: 1000px 0; }
+    }
+
+    @keyframes typewriter {
+        from { width: 0; }
+        to { width: 100%; }
+    }
+
+    .page-header {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+        padding: 40px;
+        border-radius: 20px;
+        margin-bottom: 40px;
+        box-shadow: var(--shadow);
+        animation: slideDown 0.6s ease;
+    }
+
+    .page-header h2 {
+        font-family: 'Poppins', sans-serif;
+        font-size: 36px;
+        font-weight: 700;
+        color: var(--dark);
+        margin-bottom: 12px;
+    }
+
+    .diagnosis-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+    }
+
+    .card {
+        background: white;
+        padding: 35px;
+        border-radius: 20px;
+        box-shadow: var(--shadow);
+        transition: all 0.3s ease;
+        animation: fadeIn 0.8s ease;
+    }
+
+    .card:hover {
+        box-shadow: var(--shadow-xl);
+    }
+
+    .upload-area {
+        border: 3px dashed var(--primary);
+        border-radius: 16px;
+        padding: 60px 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        background: var(--bg-secondary);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .upload-area::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: linear-gradient(
+            45deg,
+            transparent 30%,
+            rgba(16, 185, 129, 0.1) 50%,
+            transparent 70%
+        );
+        animation: shimmer 3s infinite;
+    }
+
+    .upload-icon {
+        font-size: 60px;
+        margin-bottom: 20px;
+        animation: float 3s ease-in-out infinite;
+    }
+
+    .loading {
+        display: none;
+        text-align: center;
+        padding: 60px 20px;
+    }
+
+    .loading.show {
+        display: block;
+        animation: fadeIn 0.5s ease;
+    }
+
+    .spinner {
+        width: 60px;
+        height: 60px;
+        border: 5px solid var(--bg-tertiary);
+        border-top: 5px solid var(--primary);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 20px;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    /* Enhanced Result Styling */
+    .result-container {
+        display: none;
+    }
+
+    .result-container.show {
+        display: block;
+        animation: fadeIn 0.6s ease;
+    }
+
+    .result-text {
+        background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+        padding: 30px;
+        border-radius: 16px;
+        border-left: 5px solid var(--primary);
+        max-height: 600px;
+        overflow-y: auto;
+        box-shadow: var(--shadow-sm);
+    }
+
+    /* Response Header Styling */
+    .response-header {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        color: white;
+        padding: 15px 20px;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 18px;
+        margin: 25px 0 15px 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        animation: slideDown 0.5s ease;
+    }
+
+    .response-header:first-child {
+        margin-top: 0;
+    }
+
+    .header-icon {
+        font-size: 24px;
+        animation: pulse 2s ease-in-out infinite;
+    }
+
+    /* Subheader Styling */
+    .response-subheader {
+        background: rgba(16, 185, 129, 0.05);
+        padding: 12px 18px;
+        border-radius: 8px;
+        margin: 10px 0;
+        border-left: 4px solid var(--primary);
+        animation: fadeIn 0.6s ease;
+    }
+
+    .response-subheader .label {
+        font-weight: 700;
+        color: var(--primary-dark);
+    }
+
+    .response-subheader .value {
+        color: var(--text-primary);
+        margin-left: 8px;
+    }
+
+    /* List Styling */
+    .response-list {
+        list-style: none;
+        padding-left: 0;
+        margin: 15px 0;
+    }
+
+    .response-bullet {
+        padding: 10px 15px;
+        margin: 8px 0;
+        background: white;
+        border-radius: 8px;
+        border-left: 3px solid var(--secondary);
+        position: relative;
+        padding-left: 40px;
+        animation: fadeIn 0.5s ease;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+    }
+
+    .response-bullet:hover {
+        transform: translateX(5px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .response-bullet::before {
+        content: '✓';
+        position: absolute;
+        left: 15px;
+        color: var(--secondary);
+        font-weight: bold;
+        font-size: 16px;
+    }
+
+    /* Numbered List */
+    .response-numbered {
+        padding: 12px 20px;
+        margin: 10px 0;
+        background: linear-gradient(135deg, rgba(139, 92, 246, 0.05) 0%, rgba(139, 92, 246, 0.02) 100%);
+        border-radius: 8px;
+        border-left: 4px solid var(--secondary);
+        font-weight: 600;
+        animation: fadeIn 0.5s ease;
+    }
+
+    /* Content */
+    .response-content {
+        padding: 8px 0;
+        line-height: 1.8;
+        color: var(--text-primary);
+        animation: fadeIn 0.5s ease;
+    }
+
+    .response-spacer {
+        height: 15px;
+    }
+
+    /* Chat Section */
+    .chat-section {
+        margin-top: 30px;
+        background: linear-gradient(135deg, rgba(139, 92, 246, 0.05) 0%, rgba(16, 185, 129, 0.05) 100%);
+        padding: 25px;
+        border-radius: 16px;
+        border: 2px solid rgba(139, 92, 246, 0.2);
+        animation: fadeIn 0.7s ease;
+    }
+
+    .chat-messages {
+        max-height: 300px;
+        overflow-y: auto;
+        margin-bottom: 15px;
+        padding: 15px;
+        background: white;
+        border-radius: 12px;
+    }
+
+    .chat-message {
+        margin-bottom: 15px;
+        padding: 12px 16px;
+        border-radius: 12px;
+        animation: fadeIn 0.4s ease;
+    }
+
+    .chat-message.user {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        color: white;
+        margin-left: 20%;
+        text-align: right;
+    }
+
+    .chat-message.bot {
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+        margin-right: 20%;
+        border-left: 4px solid var(--secondary);
+    }
+
+    .typing-indicator {
+        display: none;
+        padding: 12px 16px;
+        margin-right: 20%;
+    }
+
+    .typing-indicator.show {
+        display: block;
+        animation: fadeIn 0.3s ease;
+    }
+
+    .typing-dots {
+        display: inline-flex;
+        gap: 5px;
+    }
+
+    .typing-dots span {
+        width: 8px;
+        height: 8px;
+        background: var(--primary);
+        border-radius: 50%;
+        animation: bounce 1.4s infinite;
+    }
+
+    .typing-dots span:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+
+    .typing-dots span:nth-child(3) {
+        animation-delay: 0.4s;
+    }
+
+    @keyframes bounce {
+        0%, 60%, 100% { transform: translateY(0); }
+        30% { transform: translateY(-10px); }
+    }
+
+    .chat-input-group {
+        display: flex;
+        gap: 12px;
+    }
+
+    .chat-input-group textarea {
+        flex: 1;
+        padding: 15px;
+        border-radius: 12px;
+        border: 2px solid var(--border);
+        font-family: 'Inter', sans-serif;
+        font-size: 15px;
+        resize: none;
+        transition: all 0.3s ease;
+    }
+
+    .chat-input-group textarea:focus {
+        outline: none;
+        border-color: var(--secondary);
+        box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+    }
+
+    .btn-chat {
+        background: linear-gradient(135deg, var(--secondary) 0%, var(--secondary-dark) 100%);
+        color: white;
+        padding: 15px 30px;
+        border-radius: 12px;
+        border: none;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-chat:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .btn-chat:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    /* Image Preview */
+    .image-preview {
+        width: 100%;
+        max-height: 400px;
+        object-fit: contain;
+        border-radius: 16px;
+        margin-bottom: 20px;
+        border: 3px solid var(--border);
+        box-shadow: var(--shadow);
+        transition: all 0.3s ease;
+    }
+
+    .image-preview:hover {
+        transform: scale(1.02);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .btn {
+        width: 100%;
+        padding: 16px;
+        border-radius: 12px;
+        border: none;
+        font-weight: 600;
+        font-size: 16px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        margin-bottom: 12px;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        color: white;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .btn-secondary {
+        background: var(--bg-tertiary);
+        color: var(--text-primary);
+        border: 2px solid var(--border);
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+        background: var(--bg-secondary);
+        transform: translateY(-2px);
+    }
+
+    .preview-container {
+        display: none;
+    }
+
+    .tips {
+        margin-top: 25px;
+        padding: 20px;
+        background: linear-gradient(135deg, rgba(139, 92, 246, 0.05) 0%, rgba(16, 185, 129, 0.05) 100%);
+        border-radius: 12px;
+    }
+
+    .tips h3 {
+        font-size: 18px;
+        margin-bottom: 10px;
+        color: var(--secondary);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .tips ul {
+        list-style: none;
+        padding-left: 0;
+    }
+
+    .tips li {
+        padding: 8px 0;
+        padding-left: 28px;
+        position: relative;
+    }
+
+    .tips li::before {
+        content: '✓';
+        position: absolute;
+        left: 0;
+        color: var(--primary);
+        font-weight: bold;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+    }
+
+    .empty-icon {
+        font-size: 60px;
+        margin-bottom: 20px;
+        animation: float 3s ease-in-out infinite;
+    }
+
+    .success-badge {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(16, 185, 129, 0.05) 100%);
+        padding: 15px 20px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        border-left: 4px solid var(--primary);
+    }
+
+    .success-badge p {
+        font-weight: 600;
+        color: var(--primary-dark);
+        margin: 0;
+    }
+
+    .error {
+        display: none;
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(239, 68, 68, 0.05) 100%);
+        padding: 15px 20px;
+        border-radius: 12px;
+        margin-top: 20px;
+        border-left: 4px solid #ef4444;
+        color: #dc2626;
+        font-weight: 600;
+        animation: fadeIn 0.3s ease;
+    }
+
+    .error.show {
+        display: block;
+    }
+
+    @media (max-width: 968px) {
+        .diagnosis-container {
+            grid-template-columns: 1fr;
+        }
+        
+        .chat-message.user,
+        .chat-message.bot {
+            margin-left: 0;
+            margin-right: 0;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2>🔬 Plant Disease Diagnosis</h2>
+    <p>Upload a clear photo of your plant to get an instant AI-powered diagnosis with treatment recommendations.</p>
+</div>
+
+<div class="diagnosis-container">
+    <div class="card">
+        <h2>📷 Upload Plant Image</h2>
+        
+        <div class="upload-area" id="uploadArea">
+            <div class="upload-icon">⬆️</div>
+            <p style="font-weight: 600; font-size: 18px; color: var(--dark); margin-bottom: 8px;">Click to upload or drag and drop</p>
+            <p style="color: var(--text-secondary); font-size: 14px;">JPG, PNG (Max 4MB)</p>
+        </div>
+        <input type="file" id="fileInput" accept="image/*" style="display: none;">
+
+        <div class="preview-container" id="previewContainer">
+            <img id="imagePreview" class="image-preview" src="" alt="Plant preview">
+            
+            <button class="btn btn-primary" id="analyzeBtn">
+                <span>🔬</span> Analyze Plant Health
+            </button>
+            <button class="btn btn-secondary" id="changeBtn">
+                <span>🔄</span> Choose Different Image
+            </button>
+        </div>
+
+        <div class="tips">
+            <h3>💡 Tips for best results</h3>
+            <ul>
+                <li>Take clear, well-lit photos of affected areas</li>
+                <li>Include close-ups of symptoms (spots, discoloration)</li>
+                <li>Show both affected and healthy parts if possible</li>
+                <li>Avoid blurry or too dark images</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>🌱 Analysis Results</h2>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p style="font-size: 18px; font-weight: 600;">Analyzing plant...</p>
+            <p style="font-size: 14px; margin-top: 10px; color: var(--text-secondary);">This may take a few seconds</p>
+        </div>
+
+        <div class="result-container" id="resultContainer">
+            <div class="success-badge">
+                <span style="font-size: 24px;">✅</span>
+                <p>Analysis Complete</p>
+            </div>
+            <div class="result-text" id="resultText"></div>
+
+            <div class="chat-section">
+                <label style="font-weight: 600; color: var(--secondary); font-size: 16px; display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                    <span>💬</span> Ask questions about this diagnosis
+                </label>
+                
+                <div class="chat-messages" id="chatMessages"></div>
+                
+                <div class="typing-indicator" id="typingIndicator">
+                    <div class="typing-dots">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+                
+                <div class="chat-input-group">
+                    <textarea 
+                        id="chatInput"
+                        placeholder="e.g., How can I treat this naturally?"
+                        rows="2"
+                    ></textarea>
+                    <button class="btn-chat" id="sendBtn">
+                        <span>📤</span> Send
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="empty-state" id="emptyState">
+            <div class="empty-icon">🌿</div>
+            <p style="font-weight: 600; font-size: 18px; color: var(--dark);">No analysis yet</p>
+            <p style="font-size: 14px; margin-top: 8px;">Upload a plant image to get started</p>
+        </div>
+
+        <div class="error" id="errorMsg">
+            <span id="errorText"></span>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const uploadArea = document.getElementById('uploadArea');
+    const fileInput = document.getElementById('fileInput');
+    const previewContainer = document.getElementById('previewContainer');
+    const imagePreview = document.getElementById('imagePreview');
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    const changeBtn = document.getElementById('changeBtn');
+    const loading = document.getElementById('loading');
+    const resultContainer = document.getElementById('resultContainer');
+    const resultText = document.getElementById('resultText');
+    const emptyState = document.getElementById('emptyState');
+    const errorMsg = document.getElementById('errorMsg');
+    const errorText = document.getElementById('errorText');
+    const chatMessages = document.getElementById('chatMessages');
+    const chatInput = document.getElementById('chatInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const typingIndicator = document.getElementById('typingIndicator');
+
+    let selectedFile = null;
+    let currentAnalysis = '';
+
+    uploadArea.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', (e) => handleFile(e.target.files[0]));
+
+    uploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadArea.classList.add('drag-over');
+    });
+
+    uploadArea.addEventListener('dragleave', () => {
+        uploadArea.classList.remove('drag-over');
+    });
+
+    uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove('drag-over');
+        handleFile(e.dataTransfer.files[0]);
+    });
+
+    function handleFile(file) {
+        if (!file) return;
+
+        if (file.size > 4 * 1024 * 1024) {
+            showError('Image size should be less than 4MB');
+            return;
+        }
+
+        if (!file.type.startsWith('image/')) {
+            showError('Please upload a valid image file');
+            return;
+        }
+
+        selectedFile = file;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            imagePreview.src = e.target.result;
+            uploadArea.style.display = 'none';
+            previewContainer.style.display = 'block';
+            hideError();
+            hideResults();
+        };
+        reader.readAsDataURL(file);
+    }
+
+    changeBtn.addEventListener('click', () => {
+        uploadArea.style.display = 'block';
+        previewContainer.style.display = 'none';
+        resultContainer.classList.remove('show');
+        emptyState.style.display = 'block';
+        selectedFile = null;
+        fileInput.value = '';
+        chatMessages.innerHTML = '';
+        currentAnalysis = '';
+        imagePreview.src = '';
+    });
+
+    analyzeBtn.addEventListener('click', async () => {
+        if (!selectedFile) {
+            showError('Please select an image first');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('image', selectedFile);
+
+        loading.classList.add('show');
+        emptyState.style.display = 'none';
+        resultContainer.classList.remove('show');
+        hideError();
+        analyzeBtn.disabled = true;
+
+        try {
+            const response = await fetch('/api/analyze', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (data.error) {
+                throw new Error(data.error);
+            }
+
+            currentAnalysis = data.analysis;
+            
+            // Use formatted analysis with animations
+            typewriterEffect(data.formatted_analysis, resultText, () => {
+                resultContainer.classList.add('show');
+            });
+            
+        } catch (error) {
+            showError(error.message || 'An error occurred while analyzing the image');
+        } finally {
+            loading.classList.remove('show');
+            analyzeBtn.disabled = false;
+        }
+    });
+
+    // Typewriter effect for results
+    function typewriterEffect(html, element, callback) {
+        element.innerHTML = '';
+        resultContainer.classList.add('show');
+        
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = html;
+        const elements = tempDiv.children;
+        
+        let index = 0;
+        
+        function addNextElement() {
+            if (index < elements.length) {
+                const clone = elements[index].cloneNode(true);
+                clone.style.opacity = '0';
+                element.appendChild(clone);
+                
+                setTimeout(() => {
+                    clone.style.transition = 'opacity 0.3s ease';
+                    clone.style.opacity = '1';
+                }, 10);
+                
+                index++;
+                setTimeout(addNextElement, 150); // Delay between elements
+            } else if (callback) {
+                callback();
+            }
+        }
+        
+        addNextElement();
+    }
+
+    // Chat functionality
+    sendBtn.addEventListener('click', sendMessage);
+    chatInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    });
+
+    async function sendMessage() {
+        const question = chatInput.value.trim();
+
+        if (!question) {
+            showError('Please enter your question');
+            return;
+        }
+
+        if (!currentAnalysis) {
+            showError('Please analyze an image first');
+            return;
+        }
+
+        // Add user message
+        addChatMessage(question, 'user');
+        chatInput.value = '';
+        sendBtn.disabled = true;
+        
+        // Show typing indicator
+        typingIndicator.classList.add('show');
+
+        try {
+            const response = await fetch('/api/ask', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    question: question,
+                    analysis: currentAnalysis
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.error) {
+                throw new Error(data.error);
+            }
+
+            // Hide typing indicator
+            typingIndicator.classList.remove('show');
+            
+            // Add bot response with formatted answer
+            addChatMessage(data.formatted_answer, 'bot');
+            hideError();
+        } catch (err) {
+            typingIndicator.classList.remove('show');
+            showError(err.message || 'Failed to get answer');
+        } finally {
+            sendBtn.disabled = false;
+        }
+    }
+
+    function addChatMessage(message, type) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `chat-message ${type}`;
+        messageDiv.innerHTML = message;
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function showError(message) {
+        errorText.textContent = message;
+        errorMsg.classList.add('show');
+        setTimeout(() => hideError(), 5000);
+    }
+
+    function hideError() {
+        errorMsg.classList.remove('show');
+    }
+
+    function hideResults() {
+        resultContainer.classList.remove('show');
+        emptyState.style.display = 'block';
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+        emptyState.style.display = 'block';
+        previewContainer.style.display = 'none';
+        uploadArea.style.display = 'block';
+    });
+</script>
+{% endblock %}

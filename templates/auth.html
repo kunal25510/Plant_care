@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block title %}Login / Sign Up - PlantCare Pro{% endblock %}
+
+{% block extra_css %}
+<style>
+.auth-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 80vh;
+}
+
+.auth-card {
+    background: white;
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: var(--shadow-xl);
+    width: 100%;
+    max-width: 420px;
+    text-align: center;
+}
+
+.auth-card h2 {
+    font-family: 'Poppins', sans-serif;
+    font-size: 28px;
+    margin-bottom: 20px;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.auth-card input {
+    width: 100%;
+    padding: 14px;
+    margin: 10px 0;
+    border-radius: 10px;
+    border: 1px solid #ddd;
+    font-size: 15px;
+}
+
+.auth-card button {
+    width: 100%;
+    padding: 14px;
+    margin-top: 10px;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.auth-card button:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+}
+
+.toggle-link {
+    margin-top: 15px;
+    font-size: 14px;
+}
+
+.toggle-link a {
+    color: var(--secondary);
+    font-weight: 600;
+    cursor: pointer;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+
+        <!-- LOGIN FORM -->
+        <form id="loginForm" method="POST" action="/api/login">
+            <h2>🌿 Login to PlantCare Pro</h2>
+            <input type="email" name="email" placeholder="Email" required>
+            <input type="password" name="password" placeholder="Password" required>
+            <button type="submit">Login</button>
+            <div class="toggle-link">
+                Don’t have an account? <a onclick="toggleForms()">Sign Up</a>
+            </div>
+        </form>
+
+        <!-- SIGNUP FORM -->
+        <form id="signupForm" method="POST" action="/api/signup" style="display:none;">
+            <h2>✨ Create Account</h2>
+            <input type="text" name="name" placeholder="Full Name" required>
+            <input type="email" name="email" placeholder="Email" required>
+            <input type="password" name="password" placeholder="Password" required>
+            <button type="submit">Sign Up</button>
+            <div class="toggle-link">
+                Already have an account? <a onclick="toggleForms()">Login</a>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+<script>
+function toggleForms() {
+    let login = document.getElementById("loginForm");
+    let signup = document.getElementById("signupForm");
+    if (login.style.display === "none") {
+        login.style.display = "block";
+        signup.style.display = "none";
+    } else {
+        login.style.display = "none";
+        signup.style.display = "block";
+    }
+}
+</script>
+{% endblock %}

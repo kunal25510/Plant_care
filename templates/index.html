@@ -1,0 +1,476 @@
+{% extends "base.html" %}
+
+{% block title %}Home - PlantCare Pro{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Hero Section */
+    .hero {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+        border-radius: 24px;
+        padding: 80px 40px;
+        text-align: center;
+        margin-bottom: 60px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: var(--shadow-xl);
+    }
+
+    .hero::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(circle, rgba(16, 185, 129, 0.2) 0%, transparent 70%);
+        animation: pulse 4s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); opacity: 0.5; }
+        50% { transform: scale(1.1); opacity: 0.8; }
+    }
+
+    .hero-content {
+        position: relative;
+        z-index: 1;
+    }
+
+    .hero h1 {
+        font-family: 'Poppins', sans-serif;
+        font-size: 56px;
+        font-weight: 800;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 24px;
+        line-height: 1.2;
+    }
+
+    .hero-subtitle {
+        font-size: 20px;
+        color: var(--text-secondary);
+        max-width: 700px;
+        margin: 0 auto 40px;
+        line-height: 1.8;
+    }
+
+    .cta-buttons {
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .btn {
+        padding: 16px 32px;
+        border-radius: 12px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 16px;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        box-shadow: var(--shadow);
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-xl);
+    }
+
+    .btn-secondary {
+        background: white;
+        color: var(--secondary);
+        border: 2px solid var(--secondary);
+    }
+
+    .btn-secondary:hover {
+        background: var(--secondary);
+        color: white;
+        transform: translateY(-3px);
+    }
+
+    /* Features Grid */
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 30px;
+        margin-bottom: 60px;
+    }
+
+    .feature-card {
+        background: white;
+        padding: 40px;
+        border-radius: 20px;
+        box-shadow: var(--shadow);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .feature-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 5px;
+        background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%);
+        transform: scaleX(0);
+        transition: transform 0.3s ease;
+    }
+
+    .feature-card:hover::before {
+        transform: scaleX(1);
+    }
+
+    .feature-card:hover {
+        transform: translateY(-10px);
+        box-shadow: var(--shadow-xl);
+    }
+
+    .feature-icon {
+        font-size: 64px;
+        margin-bottom: 24px;
+        display: inline-block;
+        animation: bounce 2s ease-in-out infinite;
+    }
+
+    @keyframes bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+    }
+
+    .feature-card h3 {
+        font-family: 'Poppins', sans-serif;
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--dark);
+        margin-bottom: 16px;
+    }
+
+    .feature-card p {
+        color: var(--text-secondary);
+        line-height: 1.8;
+        margin-bottom: 24px;
+        font-size: 15px;
+    }
+
+    .feature-card .btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    /* Stats Section */
+    .stats-section {
+        background: linear-gradient(135deg, var(--dark) 0%, #374151 100%);
+        padding: 60px;
+        border-radius: 24px;
+        margin-bottom: 60px;
+        box-shadow: var(--shadow-xl);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stats-section::after {
+        content: '🌿';
+        position: absolute;
+        font-size: 200px;
+        opacity: 0.05;
+        right: -50px;
+        bottom: -50px;
+        animation: rotate 20s linear infinite;
+    }
+
+    @keyframes rotate {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+
+    .stats-section h2 {
+        text-align: center;
+        font-family: 'Poppins', sans-serif;
+        font-size: 36px;
+        font-weight: 700;
+        color: white;
+        margin-bottom: 50px;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 40px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .stat-item {
+        text-align: center;
+        padding: 30px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        backdrop-filter: blur(10px);
+        transition: all 0.3s ease;
+    }
+
+    .stat-item:hover {
+        background: rgba(255, 255, 255, 0.15);
+        transform: scale(1.05);
+    }
+
+    .stat-item h2 {
+        font-size: 48px;
+        font-weight: 800;
+        background: linear-gradient(135deg, var(--primary-light) 0%, var(--accent) 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 10px;
+    }
+
+    .stat-item p {
+        color: #d1d5db;
+        font-size: 16px;
+        font-weight: 500;
+    }
+
+    /* Why Choose Section */
+    .why-choose {
+        background: white;
+        padding: 60px;
+        border-radius: 24px;
+        box-shadow: var(--shadow);
+        margin-bottom: 40px;
+    }
+
+    .why-choose h2 {
+        font-family: 'Poppins', sans-serif;
+        font-size: 36px;
+        font-weight: 700;
+        color: var(--dark);
+        margin-bottom: 40px;
+        text-align: center;
+    }
+
+    .benefits-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 30px;
+    }
+
+    .benefit-item {
+        padding: 30px;
+        background: var(--bg-secondary);
+        border-radius: 16px;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
+
+    .benefit-item:hover {
+        border-color: var(--primary);
+        transform: translateX(5px);
+        background: white;
+        box-shadow: var(--shadow);
+    }
+
+    .benefit-item h4 {
+        font-family: 'Poppins', sans-serif;
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--primary);
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .benefit-item p {
+        color: var(--text-secondary);
+        line-height: 1.7;
+    }
+
+    /* Testimonials Section */
+    .testimonials {
+        background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(16, 185, 129, 0.1) 100%);
+        padding: 60px 40px;
+        border-radius: 24px;
+        margin-bottom: 40px;
+    }
+
+    .testimonials h2 {
+        font-family: 'Poppins', sans-serif;
+        font-size: 36px;
+        font-weight: 700;
+        text-align: center;
+        margin-bottom: 50px;
+        color: var(--dark);
+    }
+
+    .testimonial-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 30px;
+    }
+
+    .testimonial-card {
+        background: white;
+        padding: 30px;
+        border-radius: 16px;
+        box-shadow: var(--shadow);
+        transition: all 0.3s ease;
+    }
+
+    .testimonial-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-xl);
+    }
+
+    .testimonial-text {
+        color: var(--text-secondary);
+        line-height: 1.8;
+        margin-bottom: 20px;
+        font-style: italic;
+    }
+
+    .testimonial-author {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .author-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+    }
+
+    .author-info h5 {
+        font-weight: 600;
+        color: var(--dark);
+        margin-bottom: 4px;
+    }
+
+    .author-info p {
+        font-size: 14px;
+        color: var(--text-secondary);
+    }
+
+    @media (max-width: 768px) {
+        .hero h1 {
+            font-size: 36px;
+        }
+
+        .hero-subtitle {
+            font-size: 16px;
+        }
+
+        .hero {
+            padding: 50px 20px;
+        }
+
+        .stats-section, .why-choose, .testimonials {
+            padding: 40px 20px;
+        }
+
+        .features-grid, .stats-grid, .benefits-grid, .testimonial-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="hero">
+    <div class="hero-content">
+        <h1>🌿 Welcome to PlantCare Pro</h1>
+        <p class="hero-subtitle">
+            Your AI-powered companion for healthy, thriving plants. Get instant diagnoses, 
+            care recommendations, and expert advice powered by advanced AI technology.
+        </p>
+        <div class="cta-buttons">
+            <a href="/diagnosis" class="btn btn-primary">
+                <span>🔬</span> Diagnose Plant Disease
+            </a>
+            <a href="/plant-identifier" class="btn btn-secondary">
+                <span>🔍</span> Identify Plant
+            </a>
+            <a href="/room-preview" class="btn btn-secondary">
+                <span>🏡</span> Room Preview
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="features-grid">
+    <div class="feature-card" onclick="location.href='/diagnosis'">
+        <div class="feature-icon">🔬</div>
+        <h3>Disease Diagnosis</h3>
+        <p>Upload a photo and get instant AI-powered disease diagnosis with detailed treatment plans and prevention tips.</p>
+        <a href="/diagnosis" class="btn btn-primary">Start Diagnosis</a>
+    </div>
+
+    <div class="feature-card" onclick="location.href='/plant-identifier'">
+        <div class="feature-icon">🔍</div>
+        <h3>Plant Identifier</h3>
+        <p>Not sure what plant you have? Upload a photo and we'll identify it with complete care information.</p>
+        <a href="/plant-identifier" class="btn btn-primary">Identify Now</a>
+    </div>
+
+    <div class="feature-card" onclick="location.href='/room-preview'">
+        <div class="feature-icon">🏡</div>
+        <h3>Room Preview</h3>
+        <p>Visualize how your room or garden will look with plants and decorations before placing them. Try augmented reality previews.</p>
+        <a href="/room-preview" class="btn btn-primary">Preview Now</a>
+    </div>
+
+    <div class="feature-card" onclick="location.href='/history'">
+        <div class="feature-icon">📜</div>
+        <h3>Analysis History</h3>
+        <p>Access all your previous plant analyses and diagnoses in one convenient, organized place.</p>
+        <a href="/history" class="btn btn-primary">View History</a>
+    </div>
+</div>
+
+
+
+<div class="why-choose">
+    <h2>🌟 Why Choose PlantCare Pro?</h2>
+    <div class="benefits-grid">
+        <div class="benefit-item">
+            <h4><span>🤖</span> AI-Powered</h4>
+            <p>Advanced Google Gemini AI for accurate plant analysis and personalized recommendations.</p>
+        </div>
+        <div class="benefit-item">
+            <h4><span>⚡</span> Instant Results</h4>
+            <p>Get diagnoses and care advice in seconds, not days. Fast and efficient analysis.</p>
+        </div>
+        <div class="benefit-item">
+            <h4><span>📱</span> Easy to Use</h4>
+            <p>Simple, intuitive interface - just upload a photo and get expert advice immediately.</p>
+        </div>
+        <div class="benefit-item">
+            <h4><span>🆓</span> Free Access</h4>
+            <p>All features are completely free to use. No hidden charges or subscriptions required.</p>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}
